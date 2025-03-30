@@ -21,7 +21,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
             "INNER JOIN ( " +
             "    SELECT device_code, MAX(timestamp) AS latest_timestamp " +
             "    FROM history " +
-            "    WHERE device_code IN ('light1', 'light2', 'light3', 'light4') " +
+            "    WHERE device_code IN ('led1', 'led2', 'led3', 'led4') " +
             "    GROUP BY device_code " +
             ") latest ON h.device_code = latest.device_code AND h.timestamp = latest.latest_timestamp " +
             "ORDER BY h.timestamp DESC",

@@ -68,8 +68,6 @@ public class HistoryService {
         }
 
         DeviceStatusResponse fanResponse = modelMapper.map(latestFanStatus, DeviceStatusResponse.class);
-
-
         deviceStatusResponeList.add(fanResponse);
 
         return DeviceStatusListResponse.builder()
@@ -84,5 +82,4 @@ public class HistoryService {
         history.setStatus(activityRequest.getStatus());
         return historyRepository.save(history);
     }
-
 }

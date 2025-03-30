@@ -16,3 +16,11 @@ spring:
     hibernate:
       ddl-auto: validate
     show_sql: true
+mqtt:
+  broker:
+    url: "tcp://localhost:1885"
+  client:
+    id: "hoanghung15"
+  username: "hoanghung15"
+  password: "12345"
+  topic: "esp/control"
