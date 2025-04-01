@@ -1,5 +1,4 @@
 package com.example.Final_BE.configuration;
-
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Data
@@ -19,24 +20,27 @@ import java.util.List;
 public class MqttConfig implements MqttCallback {
 
     @Value("${mqtt.broker.url}")
-    String brokerUrl;
+    private String brokerUrl;
 
     @Value("${mqtt.client.id}")
-    String clientId;
+    private String clientId;
 
     @Value("${mqtt.username}")
-    String username;
+    private String username;
 
     @Value("${mqtt.password}")
-    String password;
+    private String password;
 
     @Value("${mqtt.topic}")
-    String topic;
+    private String topic;
 
     private MqttClient mqttClient;
     private static final String STATUS_TOPIC = "esp/status";
     private static final String DATA_TOPIC = "esp/datasensor";
     private final List<String> messages = new ArrayList<>();
+
+    // ExecutorService để xử lý tin nhắn đa luồng
+    private final ExecutorService executorService = Executors.newFixedThreadPool(3);
 
     @PostConstruct
     public void connect() {
@@ -53,7 +57,7 @@ public class MqttConfig implements MqttCallback {
             mqttClient.setCallback(this);
             log.info("Kết nối thành công đến broker: {}", brokerUrl);
 
-            // Subscribe tới topic điều khiển và topic phản hồi
+            // Subscribe tới các topic
             mqttClient.subscribe(topic);
             mqttClient.subscribe(STATUS_TOPIC);
             mqttClient.subscribe(DATA_TOPIC);
@@ -82,12 +86,19 @@ public class MqttConfig implements MqttCallback {
         String receivedMessage = new String(message.getPayload());
         log.info("Nhận được tin nhắn từ topic '{}': {}", topic, receivedMessage);
 
+        // Xử lý tin nhắn bằng ExecutorService
+        executorService.submit(() -> processMessage(topic, receivedMessage));
+    }
+
+    private void processMessage(String topic, String receivedMessage) {
         if (topic.equals(STATUS_TOPIC)) {
             synchronized (messages) {
                 messages.add(receivedMessage);
             }
         } else if (topic.equals(DATA_TOPIC)) {
-            log.error("Test>>>>>>>>>" + receivedMessage);
+            log.info("Dữ liệu cảm biến: {}", receivedMessage);
+        } else {
+            log.info("Tin nhắn từ topic khác [{}]: {}", topic, receivedMessage);
         }
     }
 
